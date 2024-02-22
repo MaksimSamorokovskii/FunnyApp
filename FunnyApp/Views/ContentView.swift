@@ -8,14 +8,33 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var viewModel = PredictionViewModel()
+    @State private var question = ""
+    @State private var showPrediction = false
+
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            TextField("Enter your question", text: $question)
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
+            Button("Get a prediction") {
+                UIApplication.shared.endEditing()
+                viewModel.fetchMemePrediction()
+                showPrediction = true
+            }
+            .padding()
+            .background(.yellow.opacity(0.6))
+            .clipShape(Capsule())
+            .disabled(question.isEmpty)
         }
         .padding()
+        .sheet(isPresented: $showPrediction) {
+            PredictionView(viewModel: viewModel, isPresented: $showPrediction)
+                .onDisappear {
+                    question = ""
+                }
+        }
     }
 }
 
@@ -24,3 +43,10 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
+extension UIApplication {
+    func endEditing() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
